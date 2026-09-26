@@ -51,3 +51,11 @@ Private signing exports and generated `SF-Cymbal-<version>-<build>.*` output dir
 ## Validate script changes
 
 Run `bash -n scripts/release.sh` and `python3 -m unittest discover -s scripts/tests -v` on macOS. The tests use temporary projects and mock signing/build services to check successful packaging and failure gates without uploading software. A real Developer ID release is still needed to verify signing and notarization end to end.
+
+## Validation record — 2026-09-26
+
+Build 3 was built from commit `5053e25` in a neutral temporary workspace. The exported app and every regular file in the final extracted ZIP passed the user-home path scan. Apple notarization, stapling, Gatekeeper assessment, ZIP checksum, and Sparkle update-signature verification passed.
+
+A separate installed copy of notarized build 2 successfully checked a localhost appcast, downloaded the signed build 3 ZIP, installed it, and relaunched. The About window and installed bundle both confirmed build 3. The temporary feed override was restored and the localhost server stopped. Nothing was published.
+
+Document-preservation testing is **not complete**. Before updating, the older build stalled after selecting “Try an example” and immediately invoking Save; a process sample showed the main thread waiting in AppKit document serialization. The test process was stopped. A separately generated blank project fixture was not openable through the test app's Open panel (Open remained disabled). That fixture remained byte-for-byte unchanged after the update, but this does not verify open-document restoration or unsaved edits. Investigate and repeat document save/open/restoration QA before public release. Local diagnostic evidence remains under the ignored `build/update-test/` directory.
