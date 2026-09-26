@@ -65,20 +65,25 @@ mkdir -p "$root"
 root=$(cd "$root" && pwd)
 output=$(mktemp -d "$root/SF-Cymbal-$version-$build.XXXXXX")
 trap 'printf "Release failed. Diagnostics retained in: %s\n" "$output" >&2' ERR
+# Build committed source and dependencies outside the user's home directory.
+# Swift source-location literals are not all covered by compiler prefix maps.
+workspace=$(mktemp -d /private/tmp/SFCymbal-release.XXXXXX)
+trap 'rm -rf "$workspace"' EXIT
+mkdir "$workspace/source"
+git archive "$commit" | tar -x -C "$workspace/source"
+derived_data="$workspace/DerivedData"
+cd "$workspace/source"
 archive="$output/SF Cymbal.xcarchive"
 app="$output/staging/SF Cymbal.app"
 printf 'Release directory: %s\n' "$output"
 
 xcodebuild -project 'SF Cymbal.xcodeproj' -scheme 'SF Cymbal' \
   -configuration Release -destination 'generic/platform=macOS' \
-  -archivePath "$archive" -derivedDataPath "$output/DerivedData" \
+  -archivePath "$archive" -derivedDataPath "$derived_data" \
   -onlyUsePackageVersionsFromResolvedFile -skipMacroValidation \
   CODE_SIGN_STYLE=Manual "CODE_SIGN_IDENTITY=$SIGNING_IDENTITY" \
   "DEVELOPMENT_TEAM=$team" ENABLE_HARDENED_RUNTIME=YES \
   'OTHER_CODE_SIGN_FLAGS=--timestamp' \
-  "OTHER_SWIFT_FLAGS=\$(inherited) -file-prefix-map \"$PWD=/src/SFCymbal\" -file-prefix-map \"$HOME=/build/user\"" \
-  "OTHER_CFLAGS=\$(inherited) -ffile-prefix-map=\"$PWD=/src/SFCymbal\" -ffile-prefix-map=\"$HOME=/build/user\"" \
-  "OTHER_CPLUSPLUSFLAGS=\$(inherited) -ffile-prefix-map=\"$PWD=/src/SFCymbal\" -ffile-prefix-map=\"$HOME=/build/user\"" \
   'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO archive 2>&1 | tee "$output/archive.log"
 
 mkdir "$output/staging"
@@ -113,7 +118,7 @@ codesign -d --entitlements - --xml "$app" > "$output/entitlements.plist"
 debug_access=$(/usr/libexec/PlistBuddy -c 'Print :com.apple.security.get-task-allow' "$output/entitlements.plist" 2>/dev/null || true)
 [[ $debug_access != true ]] || fail 'A release must not grant debugger access.'
 
-sparkle_bin="$output/DerivedData/SourcePackages/artifacts/sparkle/Sparkle/bin"
+sparkle_bin="$derived_data/SourcePackages/artifacts/sparkle/Sparkle/bin"
 public_key=$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' "$plist")
 [[ $("$sparkle_bin/generate_keys" --account "$bundle_id" -p) == "$public_key" ]] \
   || fail 'The Sparkle Keychain key does not match the app public key.'

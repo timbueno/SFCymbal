@@ -44,7 +44,7 @@ Before the first public release, test an older Sparkle-enabled build upgrading t
 
 ## Release privacy
 
-The release compiler flags remap workspace and home-directory paths to neutral paths. Before notarization, `scripts/check_release_privacy.py` scans every regular file in the exported app and rejects `/Users/<name>/` or `/home/<name>/` paths. This includes embedded frameworks and resources; a dependency that introduces such paths will stop the release for review. Archives, dSYMs, and diagnostic logs remain local and can still contain personal paths. Publish only the ZIP, checksum, and appcast.
+The release script exports the committed source into a temporary `/private/tmp/SFCymbal-release.*` workspace and builds dependencies there as well. This avoids personal paths even in Swift source-location literals that compiler remapping does not cover. The temporary workspace is removed when the script exits. Before notarization, `scripts/check_release_privacy.py` scans every regular file in the exported app and rejects `/Users/<name>/` or `/home/<name>/` paths. This includes embedded frameworks and resources; a dependency that introduces such paths will stop the release for review. Archives, dSYMs, and diagnostic logs remain local and can still contain personal paths. Publish only the ZIP, checksum, and appcast.
 
 Private signing exports and generated `SF-Cymbal-<version>-<build>.*` output directories are ignored, including when `RELEASE_ROOT` is changed. Intentional public PEM files can use the `.pub.pem` suffix. Ignore rules are preventive and do not replace reviewing staged files for secrets.
 

@@ -17,17 +17,21 @@ ROOT = Path(__file__).resolve().parents[2]
 # Only external services/build tools are mocked. Bash, PlistBuddy, ditto, checksum
 # generation, and the release script itself run normally in a temporary project.
 MOCK = r'''
-import os, pathlib, plistlib, shutil, sys
+import os, pathlib, plistlib, shutil, sys, tarfile
 name = pathlib.Path(sys.argv[0]).name
 args = sys.argv[1:]
 mode = os.environ.get('TEST_FAILURE', '')
-with open('calls.txt', 'a') as f:
+with open(os.environ['TEST_CALLS'], 'a') as f:
     f.write(name + ' ' + ' '.join(args) + '\n')
 if name == 'security':
     print('1) ABC "' + os.environ['SIGNING_IDENTITY'] + '"')
 elif name == 'git':
     if args[0] == 'status' and mode == 'dirty': print(' M source.swift')
     if args[0] == 'rev-parse': print('123456789abcdef')
+    if args[0] == 'archive':
+        with tarfile.open(fileobj=sys.stdout.buffer, mode='w|') as tar:
+            tar.add('scripts')
+            tar.add('SF Cymbal.xcodeproj')
 elif name == 'xcodebuild':
     if '-version' in args:
         print('Xcode fixture'); sys.exit(0)
@@ -102,7 +106,7 @@ class ReleaseTests(unittest.TestCase):
             (bin_dir / name).symlink_to(mock)
         self.env = dict(os.environ, PATH=str(bin_dir) + ':' + os.environ['PATH'],
                         SIGNING_IDENTITY='Developer ID Application: Fixture (TESTTEAM01)',
-                        NOTARY_PROFILE='fixture', RELEASE_ROOT=str(self.root / 'release output'))
+                        NOTARY_PROFILE='fixture', TEST_CALLS=str(self.root / 'calls.txt'), RELEASE_ROOT=str(self.root / 'release output'))
 
     def run_release(self, *args, failure=''):
         return subprocess.run(['bash', str(self.root / 'scripts/release.sh'), *args],
