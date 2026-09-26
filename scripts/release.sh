@@ -57,13 +57,13 @@ bundle_id=$(read_setting PRODUCT_BUNDLE_IDENTIFIER)
 [[ $SIGNING_IDENTITY == *"($team)" ]] || fail 'The signing certificate must match DEVELOPMENT_TEAM.'
 # Check authentication early, without submitting software.
 xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" --output-format json >/dev/null
-printf 'Ready: SF Cymbal %s (%s), %s, commit %s\n' "$version" "$build" "$bundle_id" "$commit"
+printf 'Ready: SF Cymbals %s (%s), %s, commit %s\n' "$version" "$build" "$bundle_id" "$commit"
 if $check_only; then exit 0; fi
 
 root=${RELEASE_ROOT:-"$PWD/build/releases"}
 mkdir -p "$root"
 root=$(cd "$root" && pwd)
-output=$(mktemp -d "$root/SF-Cymbal-$version-$build.XXXXXX")
+output=$(mktemp -d "$root/SF-Cymbals-$version-$build.XXXXXX")
 trap 'printf "Release failed. Diagnostics retained in: %s\n" "$output" >&2' ERR
 # Build committed source and dependencies outside the user's home directory.
 # Swift source-location literals are not all covered by compiler prefix maps.
@@ -73,8 +73,8 @@ mkdir "$workspace/source"
 git archive "$commit" | tar -x -C "$workspace/source"
 derived_data="$workspace/DerivedData"
 cd "$workspace/source"
-archive="$output/SF Cymbal.xcarchive"
-app="$output/staging/SF Cymbal.app"
+archive="$output/SF Cymbals.xcarchive"
+app="$output/staging/SF Cymbals.app"
 printf 'Release directory: %s\n' "$output"
 
 xcodebuild -project 'SF Cymbal.xcodeproj' -scheme 'SF Cymbal' \
@@ -96,15 +96,15 @@ export_options="$output/ExportOptions.plist"
 /usr/libexec/PlistBuddy -c 'Add :manageAppVersionAndBuildNumber bool false' "$export_options"
 xcodebuild -exportArchive -archivePath "$archive" -exportPath "$output/export" \
   -exportOptionsPlist "$export_options" 2>&1 | tee "$output/export.log"
-ditto "$output/export/SF Cymbal.app" "$app"
+ditto "$output/export/SF Cymbals.app" "$app"
 python3 scripts/check_release_privacy.py "$app"
 plist="$app/Contents/Info.plist"
 [[ $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist") == "$version" ]]
 [[ $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist") == "$build" ]]
 [[ $(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist") == "$bundle_id" ]]
 # Check each slice separately; some Xcode lipo versions reject multiple arches.
-xcrun lipo "$app/Contents/MacOS/SF Cymbal" -verify_arch arm64
-xcrun lipo "$app/Contents/MacOS/SF Cymbal" -verify_arch x86_64
+xcrun lipo "$app/Contents/MacOS/SF Cymbals" -verify_arch arm64
+xcrun lipo "$app/Contents/MacOS/SF Cymbals" -verify_arch x86_64
 codesign --verify --deep --strict --verbose=2 "$app"
 codesign -d --verbose=4 "$app" 2> "$output/signature.txt"
 grep -F -- "Authority=$SIGNING_IDENTITY" "$output/signature.txt" >/dev/null
@@ -149,7 +149,7 @@ codesign --verify --deep --strict --verbose=2 "$app"
 spctl --assess --type execute --verbose=2 "$app"
 
 # Repackage AFTER stapling so the download contains the ticket.
-artifact="SF-Cymbal-$version.zip"
+artifact="SF-Cymbals-$version.zip"
 ditto -c -k --keepParent "$app" "$output/$artifact"
 (cd "$output" && shasum -a 256 "$artifact" > "$artifact.sha256")
 # Keep the pre-stapling upload out of generate_appcast's input directory.

@@ -1,10 +1,10 @@
-# SF Cymbal
+# SF Cymbals
 
 A small native macOS app for turning SVG artwork into custom SF Symbols. Uses Point-Free’s Composable Architecture 1.26.2 for editor state and effects and SwiftDraw 0.29.0 for SVG parsing, rendering, and SF Symbols export. Requires macOS 14 or later.
 
 ## Status
 
-SF Cymbal is in early development. [Download SF Cymbal 2026.1](https://github.com/timbueno/SFCymbal/releases/tag/v2026.1), a signed and notarized universal app for macOS 14 or later. See the release notes for known limitations.
+SF Cymbals is in early development. [Download SF Cymbals 2026.1](https://github.com/timbueno/SFCymbal/releases/tag/v2026.1), a signed and notarized universal app for macOS 14 or later. See the release notes for known limitations.
 
 ## Release versioning
 
@@ -45,7 +45,7 @@ Undo menu entries describe alignment, stroke scale, reference, zoom, and other c
 
 ## App updates
 
-Release builds include **SF Cymbal → Check for Updates…**, powered by Sparkle 2.10.0. Sparkle asks whether to check automatically and respects that choice. Updates use signed archives from GitHub Releases. Debug builds leave the updater disabled so development and tests do not check for public updates.
+Release builds include **SF Cymbals → Check for Updates…**, powered by Sparkle 2.10.0. Sparkle asks whether to check automatically and respects that choice. Updates use signed archives from GitHub Releases. Debug builds leave the updater disabled so development and tests do not check for public updates.
 
 The update feed is hosted in the latest stable GitHub release as `appcast.xml`.
 
@@ -94,7 +94,7 @@ Tests cover export structure, invalid artwork, automatic bounds with a nonzero v
 
 ## Contributing
 
-Issues and focused pull requests are welcome. SF Cymbal is an alignment and conversion utility, rather than a vector drawing app. Please discuss larger changes in an issue first.
+Issues and focused pull requests are welcome. SF Cymbals is an alignment and conversion utility, rather than a vector drawing app. Please discuss larger changes in an issue first.
 
 Run the tests before submitting a pull request. When reporting a conversion problem, include a minimal SVG you have permission to share, reproduction steps, and your macOS/Xcode versions.
 
@@ -108,6 +108,6 @@ Full license texts for the pinned dependencies are in [THIRD_PARTY_NOTICES.md](T
 
 ## License
 
-Copyright © 2026 Tim Bueno. SF Cymbal is licensed under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only).
+Copyright © 2026 Tim Bueno. SF Cymbals is licensed under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only).
 
 Third-party dependencies remain under their respective licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

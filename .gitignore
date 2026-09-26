@@ -37,3 +37,8 @@ SF-Cymbal-*.zip.sha256
 notarization*.zip
 *-release.log
 *-tests.log
+
+# Plural app name
+SF-Cymbals-[0-9]*/
+SF-Cymbals-*.zip
+SF-Cymbals-*.zip.sha256

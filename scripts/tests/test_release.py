@@ -37,8 +37,8 @@ elif name == 'xcodebuild':
         print('Xcode fixture'); sys.exit(0)
     if '-exportArchive' in args:
         if mode == 'export': sys.exit(1)
-        source = pathlib.Path(args[args.index('-archivePath') + 1]) / 'Products/Applications/SF Cymbal.app'
-        target = pathlib.Path(args[args.index('-exportPath') + 1]) / 'SF Cymbal.app'
+        source = pathlib.Path(args[args.index('-archivePath') + 1]) / 'Products/Applications/SF Cymbals.app'
+        target = pathlib.Path(args[args.index('-exportPath') + 1]) / 'SF Cymbals.app'
         shutil.copytree(source, target)
         sys.exit(0)
     if mode == 'build': sys.exit(1)
@@ -46,9 +46,9 @@ elif name == 'xcodebuild':
     tools.mkdir(parents=True)
     for tool in ['generate_keys', 'generate_appcast', 'sign_update']:
         (tools / tool).symlink_to(pathlib.Path(sys.argv[0]).resolve())
-    app = pathlib.Path(args[args.index('-archivePath') + 1]) / 'Products/Applications/SF Cymbal.app/Contents'
+    app = pathlib.Path(args[args.index('-archivePath') + 1]) / 'Products/Applications/SF Cymbals.app/Contents'
     (app / 'MacOS').mkdir(parents=True)
-    (app / 'MacOS/SF Cymbal').write_text('/Users/private-builder/source.swift' if mode == 'privacy' else 'fixture')
+    (app / 'MacOS/SF Cymbals').write_text('/Users/private-builder/source.swift' if mode == 'privacy' else 'fixture')
     with (app / 'Info.plist').open('wb') as f:
         plistlib.dump({'CFBundleShortVersionString': '2026.1', 'CFBundleVersion': '1',
                       'CFBundleIdentifier': 'io.deadpan.SFCymbal', 'SUPublicEDKey': 'fixture-public-key'}, f)
@@ -59,7 +59,7 @@ elif name == 'generate_appcast':
     prefix = args[args.index('--download-url-prefix') + 1]
     pathlib.Path(args[args.index('-o') + 1]).write_text(
         '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"><channel><item>'
-        '<enclosure sparkle:edSignature="fixture-signature" url="' + prefix + 'SF-Cymbal-2026.1.zip"/>'
+        '<enclosure sparkle:edSignature="fixture-signature" url="' + prefix + 'SF-Cymbals-2026.1.zip"/>'
         '</item></channel></rss>')
 elif name == 'sign_update' and mode == 'signature': sys.exit(1)
 elif name == 'codesign' and '--entitlements' in args:
@@ -113,14 +113,14 @@ class ReleaseTests(unittest.TestCase):
                               env=dict(self.env, TEST_FAILURE=failure), capture_output=True, text=True)
 
     def artifacts(self):
-        return list(self.root.glob('release output/*/SF-Cymbal-2026.1.zip'))
+        return list(self.root.glob('release output/*/SF-Cymbals-2026.1.zip'))
 
     def test_success_packages_stapled_app_and_checksum(self):
         result = self.run_release()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         artifact, = self.artifacts()
         with zipfile.ZipFile(artifact) as z:
-            self.assertEqual(z.read('SF Cymbal.app/Contents/ticket'), b'stapled')
+            self.assertEqual(z.read('SF Cymbals.app/Contents/ticket'), b'stapled')
         result = subprocess.run(['shasum', '-a', '256', '-c', artifact.name + '.sha256'],
                                 cwd=artifact.parent, capture_output=True)
         self.assertEqual(result.returncode, 0)

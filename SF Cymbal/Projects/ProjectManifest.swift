@@ -18,7 +18,7 @@ struct ProjectManifest: Codable, Equatable, Sendable {
 
     func validate() throws {
         guard formatVersion == 1 else {
-            throw SymbolConverter.ConversionError("This project uses format version \(formatVersion). This version of SF Cymbal supports version 1.")
+            throw SymbolConverter.ConversionError("This project uses format version \(formatVersion). This version of SF Cymbals supports version 1.")
         }
         let values = [settings.left, settings.right, settings.top, settings.bottom,
                       settings.minimumStroke, settings.maximumStroke, zoom,

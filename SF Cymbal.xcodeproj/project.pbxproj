@@ -23,7 +23,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		000000000000000000000120 /* SF Cymbal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SF Cymbal.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000120 /* SF Cymbals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SF Cymbals.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000000000000000000001 /* SF Cymbal Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = "SF Cymbal Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -69,7 +69,7 @@
 		000000000000000000000020 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				000000000000000000000120 /* SF Cymbal.app */,
+				000000000000000000000120 /* SF Cymbals.app */,
 				B10000000000000000000001 /* SF Cymbal Tests.xctest */,
 			);
 			name = Products;
@@ -98,7 +98,7 @@
 				C10000000000000000000002 /* Sparkle */,
 			);
 			productName = "SF Cymbal";
-			productReference = 000000000000000000000120 /* SF Cymbal.app */;
+			productReference = 000000000000000000000120 /* SF Cymbals.app */;
 			productType = "com.apple.product-type.application";
 		};
 		B10000000000000000000003 /* SF Cymbal Tests */ = {
@@ -330,7 +330,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Configuration/SFCymbal.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = XFQMUYW2KG;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -350,8 +350,9 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 2026.1;
+				PRODUCT_MODULE_NAME = SF_Cymbal;
 				PRODUCT_BUNDLE_IDENTIFIER = io.deadpan.SFCymbal;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "SF Cymbals";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -372,7 +373,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Configuration/SFCymbal.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = XFQMUYW2KG;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -392,8 +393,9 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 2026.1;
+				PRODUCT_MODULE_NAME = SF_Cymbal;
 				PRODUCT_BUNDLE_IDENTIFIER = io.deadpan.SFCymbal;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "SF Cymbals";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -425,7 +427,7 @@
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SF Cymbal.app/Contents/MacOS/SF Cymbal";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SF Cymbals.app/Contents/MacOS/SF Cymbals";
 			};
 			name = Debug;
 		};
@@ -447,7 +449,7 @@
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SF Cymbal.app/Contents/MacOS/SF Cymbal";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SF Cymbals.app/Contents/MacOS/SF Cymbals";
 			};
 			name = Release;
 		};

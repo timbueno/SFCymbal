@@ -26,7 +26,7 @@ struct AppCommands: Commands {
                 .disabled(exportSymbol == nil)
         }
         CommandGroup(before: .windowArrangement) {
-            Button("New SF Cymbal Window") { newDocument(ProjectDocument()) }
+            Button("New SF Cymbals Window") { newDocument(ProjectDocument()) }
         }
     }
 }

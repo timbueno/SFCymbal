@@ -54,7 +54,7 @@ struct SymbolCanvasView: View {
                             Text("Make your mark.").font(.largeTitle.weight(.semibold))
                             Text("Turn your vector artwork into a custom SF Symbol.")
                                 .foregroundStyle(.secondary)
-                            Text("Drop an SVG or SF Cymbal project here to begin.")
+                            Text("Drop an SVG or SF Cymbals project here to begin.")
                                 .font(.callout).foregroundStyle(.secondary)
                         }
                         Button("Import SVG…") { store.send(.importButtonTapped) }
