@@ -43,6 +43,12 @@ The Reference popover’s **Use as Default for New Documents** button remembers 
 
 Undo menu entries describe alignment, stroke scale, reference, zoom, and other changes. After exporting, a quiet confirmation offers **Show in Finder** and **Dismiss**. Export validation identifies unsupported SVG content and explains how to repair it in the source drawing app.
 
+## App updates
+
+Release builds include **SF Cymbal → Check for Updates…**, powered by Sparkle 2.10.0. Sparkle asks whether to check automatically and respects that choice. Updates use signed archives from GitHub Releases. Debug builds leave the updater disabled so development and tests do not check for public updates.
+
+The update feed becomes available when the first public GitHub release includes `appcast.xml`.
+
 ## Saving projects
 
 Each window edits a native `.sfcymbal` document. Use **File → New (⌘N)** for a blank document, **Open… (⌘O)** or Open Recent for saved projects, and **Save (⌘S)** to choose its location. macOS manages autosave, unsaved changes, undo/redo, and the standard Duplicate, Rename, Move, and Revert commands. Import SVG replaces the artwork in the current document; opening or dropping a saved project opens its own document. Exporting an SF Symbol remains a separate operation.
@@ -96,6 +102,7 @@ Run the tests before submitting a pull request. When reporting a conversion prob
 
 Full license texts for the pinned dependencies are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
+- [Sparkle](https://github.com/sparkle-project/Sparkle), by the Sparkle Project (see bundled license notices).
 - [SwiftDraw](https://github.com/swhitty/SwiftDraw), by Simon Whitty (zlib license).
 - [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture), by Point-Free (MIT license).
 

@@ -1,6 +1,6 @@
 # Releasing SF Cymbal
 
-Run `scripts/release.sh` on macOS with the full Xcode version documented in the README selected by `xcode-select` (or `DEVELOPER_DIR`). The script creates a universal arm64/x86_64 Release archive, signs with Developer ID and hardened runtime, submits to Apple, staples the accepted ticket, checks Gatekeeper, and creates a ZIP and SHA-256 checksum. It follows [Apple’s notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow).
+Run `scripts/release.sh` on macOS with the full Xcode version documented in the README selected by `xcode-select` (or `DEVELOPER_DIR`). The script creates a universal arm64/x86_64 Release archive, signs with Developer ID and hardened runtime, exports to re-sign Sparkle’s nested helpers, submits to Apple, staples the accepted ticket, checks Gatekeeper, and creates a ZIP, SHA-256 checksum, and signed-update appcast. It follows [Apple’s notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow).
 
 ## One-time setup
 
@@ -13,6 +13,8 @@ Run `scripts/release.sh` on macOS with the full Xcode version documented in the 
    ```
 
    Follow the prompts for your Apple ID, team ID, and an app-specific password (or use the API-key options shown by `--help`). Do not put credentials in the repository or shell scripts.
+
+4. Sparkle’s Ed25519 private key is stored in the login Keychain under account `io.deadpan.SFCymbal`. Only the public key is committed in `Configuration/Info.plist`. Preserve this Keychain item when migrating Macs; future updates need this key. On the original signing Mac, it has already been generated. After resolving packages, Sparkle’s tools are under `<DerivedData>/SourcePackages/artifacts/sparkle/Sparkle/bin/`. `generate_keys --account io.deadpan.SFCymbal -p` prints only the existing public key. On another signing Mac, securely transfer the existing private key using Sparkle’s documented export/import workflow rather than generating a replacement.
 
 ## Build a release
 
@@ -32,9 +34,13 @@ scripts/release.sh
 
 Each run gets a unique directory under `build/releases/` (override with `RELEASE_ROOT`). Keep the archive and dSYMs for debugging. The directory also contains the build log, signing details, notarization result/log, and source/toolchain metadata. If notarization fails, consult those logs; correct the issue and rerun. No final download ZIP is produced unless notarization, stapling, and Gatekeeper checks all pass.
 
-The publishable files are `SF-Cymbal-2026.1.zip` and its `.sha256` file. The separate `notarization.zip` is the pre-stapling upload and **must not be published**. Test the final ZIP on a clean Mac before publishing, including import/export and document saving. Tag the recorded commit as `v2026.1` and attach the final ZIP and checksum to that GitHub release once ready.
+The publishable files are `SF-Cymbal-2026.1.zip`, its `.sha256` file, and `appcast.xml`. Treat a run as successful only when it prints `Release ready` and writes `release.txt`; appcast generation or signature validation can fail after the ZIP is created. The separate `notarization.zip` is the pre-stapling upload and **must not be published**. Test the final ZIP on a clean Mac before publishing, including import/export and document saving. Tag the recorded commit as `v2026.1` and attach the final ZIP, checksum, and appcast to that GitHub release once ready. Mark it as the latest stable release. The app uses `https://github.com/timbueno/SFCymbal/releases/latest/download/appcast.xml`; appcast enclosures point to the immutable `releases/download/v2026.1/` asset URL. Upload all three assets before publishing the release. Do not replace the ZIP after generating its appcast signature.
 
-Sparkle integration and update signing/appcast generation are the next step, before the first public release. This script currently packages local releases only.
+The script reads Sparkle’s signing key from Keychain, checks it matches the public key in the exported app, generates `appcast.xml` from the stapled ZIP, and verifies its EdDSA signature. Each feed contains the current full update; delta updates are disabled. If a future release drops support for an older macOS version, preserve compatible entries in the appcast before publishing instead of replacing it with a single new entry.
+
+The app remains sandboxed, using Sparkle’s installer and downloader XPC services and its two documented Mach lookup exceptions. The main app does not gain general network access. Debug builds disable the updater; use a Release build to check the menu and update flow. Sparkle manages the automatic-check permission prompt and stores the user’s choice.
+
+Before the first public release, test an older Sparkle-enabled build upgrading to a higher build number using a test feed, including relaunch and document preservation. The original build without Sparkle cannot update itself. A public update check will fail until the first GitHub release and its appcast are published. The script never publishes or pushes anything itself.
 
 ## Validate script changes
 

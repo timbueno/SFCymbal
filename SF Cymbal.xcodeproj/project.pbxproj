@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* SwiftDraw in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000003 /* SwiftDraw */; };
 		A10000000000000000000002 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000004 /* ComposableArchitecture */; };
+		C10000000000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = C10000000000000000000002 /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 			files = (
 				A10000000000000000000001 /* SwiftDraw in Frameworks */,
 				A10000000000000000000002 /* ComposableArchitecture in Frameworks */,
+				C10000000000000000000001 /* Sparkle in Frameworks */,
 			);
 		};
 		B10000000000000000000006 /* Frameworks */ = {
@@ -93,6 +95,7 @@
 			packageProductDependencies = (
 				A10000000000000000000003 /* SwiftDraw */,
 				A10000000000000000000004 /* ComposableArchitecture */,
+				C10000000000000000000002 /* Sparkle */,
 			);
 			productName = "SF Cymbal";
 			productReference = 000000000000000000000120 /* SF Cymbal.app */;
@@ -145,6 +148,7 @@
 			packageReferences = (
 				A10000000000000000000005 /* XCRemoteSwiftPackageReference "SwiftDraw" */,
 				A10000000000000000000006 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				C10000000000000000000003 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
@@ -324,8 +328,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Configuration/SFCymbal.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XFQMUYW2KG;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -365,8 +370,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Configuration/SFCymbal.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XFQMUYW2KG;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -493,6 +499,14 @@
 			traits = (
 			);
 		};
+		C10000000000000000000003 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.10.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -505,6 +519,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000000000000000000006 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		C10000000000000000000002 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C10000000000000000000003 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

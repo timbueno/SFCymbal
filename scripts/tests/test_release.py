@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # Only external services/build tools are mocked. Bash, PlistBuddy, ditto, checksum
 # generation, and the release script itself run normally in a temporary project.
 MOCK = r'''
-import os, pathlib, plistlib, sys
+import os, pathlib, plistlib, shutil, sys
 name = pathlib.Path(sys.argv[0]).name
 args = sys.argv[1:]
 mode = os.environ.get('TEST_FAILURE', '')
@@ -31,16 +31,37 @@ elif name == 'git':
 elif name == 'xcodebuild':
     if '-version' in args:
         print('Xcode fixture'); sys.exit(0)
+    if '-exportArchive' in args:
+        if mode == 'export': sys.exit(1)
+        source = pathlib.Path(args[args.index('-archivePath') + 1]) / 'Products/Applications/SF Cymbal.app'
+        target = pathlib.Path(args[args.index('-exportPath') + 1]) / 'SF Cymbal.app'
+        shutil.copytree(source, target)
+        sys.exit(0)
     if mode == 'build': sys.exit(1)
+    tools = pathlib.Path(args[args.index('-derivedDataPath') + 1]) / 'SourcePackages/artifacts/sparkle/Sparkle/bin'
+    tools.mkdir(parents=True)
+    for tool in ['generate_keys', 'generate_appcast', 'sign_update']:
+        (tools / tool).symlink_to(pathlib.Path(sys.argv[0]).resolve())
     app = pathlib.Path(args[args.index('-archivePath') + 1]) / 'Products/Applications/SF Cymbal.app/Contents'
     (app / 'MacOS').mkdir(parents=True)
     (app / 'MacOS/SF Cymbal').write_text('fixture')
     with (app / 'Info.plist').open('wb') as f:
         plistlib.dump({'CFBundleShortVersionString': '2026.1', 'CFBundleVersion': '1',
-                      'CFBundleIdentifier': 'io.deadpan.SFCymbal'}, f)
+                      'CFBundleIdentifier': 'io.deadpan.SFCymbal', 'SUPublicEDKey': 'fixture-public-key'}, f)
+elif name == 'generate_keys':
+    print('wrong-key' if mode == 'key' else 'fixture-public-key')
+elif name == 'generate_appcast':
+    if mode == 'appcast': sys.exit(1)
+    prefix = args[args.index('--download-url-prefix') + 1]
+    pathlib.Path(args[args.index('-o') + 1]).write_text(
+        '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"><channel><item>'
+        '<enclosure sparkle:edSignature="fixture-signature" url="' + prefix + 'SF-Cymbal-2026.1.zip"/>'
+        '</item></channel></rss>')
+elif name == 'sign_update' and mode == 'signature': sys.exit(1)
 elif name == 'codesign' and '--entitlements' in args:
     plistlib.dump({'com.apple.security.app-sandbox': mode != 'sandbox',
                   'com.apple.security.files.user-selected.read-write': True,
+                  'com.apple.security.temporary-exception.mach-lookup.global-name': ['io.deadpan.SFCymbal-spks', 'io.deadpan.SFCymbal-spki'],
                   'com.apple.security.get-task-allow': mode == 'debugger'}, sys.stdout.buffer)
 elif name == 'codesign' and '-d' in args:
     print('Authority=' + os.environ['SIGNING_IDENTITY'] + '\nflags=0x10000(runtime)\nTimestamp=fixture', file=sys.stderr)
@@ -109,11 +130,19 @@ class ReleaseTests(unittest.TestCase):
         self.assertFalse(self.artifacts())
 
     def test_failures_never_produce_download(self):
-        for failure in ['dirty', 'build', 'architecture', 'sandbox', 'debugger', 'notary', 'staple', 'gatekeeper']:
+        for failure in ['dirty', 'build', 'export', 'key', 'architecture', 'sandbox', 'debugger', 'notary', 'staple', 'gatekeeper']:
             with self.subTest(failure=failure):
                 result = self.run_release(failure=failure)
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertFalse(self.artifacts())
+
+    def test_appcast_failure_does_not_mark_release_ready(self):
+        for failure in ['appcast', 'signature']:
+            with self.subTest(failure=failure):
+                result = self.run_release(failure=failure)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn('Release ready:', result.stdout)
+                self.assertFalse(list(self.root.glob('release output/*/release.txt')))
 
     def test_development_certificate_rejected(self):
         self.env['SIGNING_IDENTITY'] = 'Apple Development: Fixture (TESTTEAM01)'

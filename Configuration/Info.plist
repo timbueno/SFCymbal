@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>SUPublicEDKey</key>
+    <string>VpJ8PRJll+Djbmefga5ugXgXVKBZOLcXcsN1U7819MM=</string>
+    <key>SUFeedURL</key>
+    <string>https://github.com/timbueno/SFCymbal/releases/latest/download/appcast.xml</string>
+    <key>SUEnableInstallerLauncherService</key>
+    <true/>
+    <key>SUEnableDownloaderService</key>
+    <true/>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

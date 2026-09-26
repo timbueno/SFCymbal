@@ -79,7 +79,16 @@ xcodebuild -project 'SF Cymbal.xcodeproj' -scheme 'SF Cymbal' \
   'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO archive 2>&1 | tee "$output/archive.log"
 
 mkdir "$output/staging"
-ditto "$archive/Products/Applications/SF Cymbal.app" "$app"
+# Export re-signs Sparkle's nested XPC services and helpers for distribution.
+export_options="$output/ExportOptions.plist"
+/usr/libexec/PlistBuddy -c 'Add :method string developer-id' "$export_options"
+/usr/libexec/PlistBuddy -c 'Add :signingStyle string manual' "$export_options"
+/usr/libexec/PlistBuddy -c "Add :signingCertificate string $SIGNING_IDENTITY" "$export_options"
+/usr/libexec/PlistBuddy -c "Add :teamID string $team" "$export_options"
+/usr/libexec/PlistBuddy -c 'Add :manageAppVersionAndBuildNumber bool false' "$export_options"
+xcodebuild -exportArchive -archivePath "$archive" -exportPath "$output/export" \
+  -exportOptionsPlist "$export_options" 2>&1 | tee "$output/export.log"
+ditto "$output/export/SF Cymbal.app" "$app"
 plist="$app/Contents/Info.plist"
 [[ $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist") == "$version" ]]
 [[ $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist") == "$build" ]]
@@ -99,6 +108,18 @@ codesign -d --entitlements - --xml "$app" > "$output/entitlements.plist"
   || fail 'The release must retain user-selected file access.'
 debug_access=$(/usr/libexec/PlistBuddy -c 'Print :com.apple.security.get-task-allow' "$output/entitlements.plist" 2>/dev/null || true)
 [[ $debug_access != true ]] || fail 'A release must not grant debugger access.'
+
+sparkle_bin="$output/DerivedData/SourcePackages/artifacts/sparkle/Sparkle/bin"
+public_key=$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' "$plist")
+[[ $("$sparkle_bin/generate_keys" --account "$bundle_id" -p) == "$public_key" ]] \
+  || fail 'The Sparkle Keychain key does not match the app public key.'
+
+# Verify the sandbox exceptions after Xcode expands the bundle identifier.
+for index in 0 1; do
+  service=$(/usr/libexec/PlistBuddy -c "Print :com.apple.security.temporary-exception.mach-lookup.global-name:$index" "$output/entitlements.plist")
+  if [[ $index == 0 ]]; then expected="$bundle_id-spks"; else expected="$bundle_id-spki"; fi
+  [[ $service == "$expected" ]] || fail 'Missing Sparkle sandbox exception.'
+done
 
 ditto -c -k --keepParent "$app" "$output/notarization.zip"
 notary_exit=0
@@ -122,9 +143,20 @@ spctl --assess --type execute --verbose=2 "$app"
 artifact="SF-Cymbal-$version.zip"
 ditto -c -k --keepParent "$app" "$output/$artifact"
 (cd "$output" && shasum -a 256 "$artifact" > "$artifact.sha256")
+# Keep the pre-stapling upload out of generate_appcast's input directory.
+mkdir "$output/appcast-input"
+ln "$output/$artifact" "$output/appcast-input/$artifact"
+download_prefix="https://github.com/timbueno/SFCymbal/releases/download/v$version/"
+"$sparkle_bin/generate_appcast" --account "$bundle_id" --maximum-deltas 0 \
+  --download-url-prefix "$download_prefix" -o "$output/appcast.xml" "$output/appcast-input"
+signature=$(/usr/bin/xmllint --xpath 'string(/rss/channel/item/enclosure/@*[local-name()="edSignature"])' "$output/appcast.xml")
+[[ -n $signature ]] || fail 'The generated appcast has no update signature.'
+"$sparkle_bin/sign_update" --account "$bundle_id" --verify "$output/$artifact" "$signature"
+[[ $(/usr/bin/xmllint --xpath 'string(/rss/channel/item/enclosure/@url)' "$output/appcast.xml") == "$download_prefix$artifact" ]] \
+  || fail 'The appcast download URL does not match this release.'
 {
   printf 'Version: %s\nBuild: %s\nBundle: %s\nCommit: %s\nNotarization: %s\n' \
     "$version" "$build" "$bundle_id" "$commit" "$submission"
   xcodebuild -version
 } > "$output/release.txt"
-printf '\nRelease ready: %s\nChecksum: %s\n' "$output/$artifact" "$output/$artifact.sha256"
+printf '\nRelease ready: %s\nChecksum: %s\nAppcast: %s\n' "$output/$artifact" "$output/$artifact.sha256" "$output/appcast.xml"
