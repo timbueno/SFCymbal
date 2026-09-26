@@ -1,6 +1,6 @@
 # Third-party notices
 
-SF Cymbal uses the following open-source packages. These notices include direct and transitive dependencies pinned in `Package.resolved`, including build and test tools. Each package retains its original license.
+SF Cymbals uses the following open-source packages. These notices include direct and transitive dependencies pinned in `Package.resolved`, including build and test tools. Each package retains its original license.
 
 ## combine-schedulers 1.2.2
 
