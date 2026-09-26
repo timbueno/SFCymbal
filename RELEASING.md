@@ -1,0 +1,41 @@
+# Releasing SF Cymbal
+
+Run `scripts/release.sh` on macOS with the full Xcode version documented in the README selected by `xcode-select` (or `DEVELOPER_DIR`). The script creates a universal arm64/x86_64 Release archive, signs with Developer ID and hardened runtime, submits to Apple, staples the accepted ticket, checks Gatekeeper, and creates a ZIP and SHA-256 checksum. It follows [Apple’s notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow).
+
+## One-time setup
+
+1. In Xcode → Settings → Accounts → Manage Certificates, create/install a **Developer ID Application** certificate for the project's development team, including its private key. An Apple Development certificate cannot sign a public release. Run `security find-identity -v -p codesigning` to find the full certificate name.
+2. The app uses `io.deadpan.SFCymbal` as its permanent `PRODUCT_BUNDLE_IDENTIFIER` in both Debug and Release. Keep this identifier stable for future updates.
+3. Store notarization credentials interactively in the Keychain:
+
+   ```sh
+   xcrun notarytool store-credentials "SF-Cymbal-notary"
+   ```
+
+   Follow the prompts for your Apple ID, team ID, and an app-specific password (or use the API-key options shown by `--help`). Do not put credentials in the repository or shell scripts.
+
+## Build a release
+
+Update `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in both app configurations. Public versions start at `2026.1`; build numbers must increase across every public release, including across years. Compare against the last published release; the script validates the format but does not query published release history.
+
+Run the test suite from the README and review the pinned package revisions, then commit all release source changes. The script requires a clean working tree so `release.txt` identifies the exact source used. It permits the pinned dependencies' build macros with `-skipMacroValidation`, as the existing test command does.
+
+```sh
+export SIGNING_IDENTITY='Developer ID Application: Your Name (YOURTEAMID)'
+export NOTARY_PROFILE='SF-Cymbal-notary'
+
+scripts/release.sh --check
+scripts/release.sh
+```
+
+`--check` checks signing identity, committed source, version settings, and Keychain authentication without building or uploading an app. The normal run uploads the signed app to Apple's notarization service. No Git tag or GitHub release is created.
+
+Each run gets a unique directory under `build/releases/` (override with `RELEASE_ROOT`). Keep the archive and dSYMs for debugging. The directory also contains the build log, signing details, notarization result/log, and source/toolchain metadata. If notarization fails, consult those logs; correct the issue and rerun. No final download ZIP is produced unless notarization, stapling, and Gatekeeper checks all pass.
+
+The publishable files are `SF-Cymbal-2026.1.zip` and its `.sha256` file. The separate `notarization.zip` is the pre-stapling upload and **must not be published**. Test the final ZIP on a clean Mac before publishing, including import/export and document saving. Tag the recorded commit as `v2026.1` and attach the final ZIP and checksum to that GitHub release once ready.
+
+Sparkle integration and update signing/appcast generation are the next step, before the first public release. This script currently packages local releases only.
+
+## Validate script changes
+
+Run `bash -n scripts/release.sh` and `python3 -m unittest discover -s scripts/tests -v` on macOS. The tests use temporary projects and mock signing/build services to check successful packaging and failure gates without uploading software. A real Developer ID release is still needed to verify signing and notarization end to end.

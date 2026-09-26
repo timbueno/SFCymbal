@@ -11,6 +11,7 @@ build/
 *.xcresult
 *.app
 *.dmg
+__pycache__/
 
 # Local signing and credentials
 .env

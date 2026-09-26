@@ -6,6 +6,14 @@ A small native macOS app for turning SVG artwork into custom SF Symbols. Uses Po
 
 SF Cymbal is in early development. This repository currently provides source code; a signed, notarized download has not been published yet.
 
+## Release versioning
+
+Public versions use `<year>.<release_number>`, starting with `2026.1`, then `2026.2`, and so on. The release number starts at 1 each year (for example, `2027.1`). Git tags use the same version with a `v` prefix, such as `v2026.1`.
+
+`MARKETING_VERSION` stores this public version. `CURRENT_PROJECT_VERSION` is a separate, monotonically increasing integer build number for update ordering; it never resets at the new year. The `.sfcymbal` document format version is independent of both.
+
+See [RELEASING.md](RELEASING.md) for the Developer ID signing and notarization setup and the local release script.
+
 ## Run
 
 The project is currently built and tested with **Xcode 27.1 beta**. Older Xcode versions have not been verified. The deployment target is macOS 14. Package versions are pinned in `Package.resolved`.
