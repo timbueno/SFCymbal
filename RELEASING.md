@@ -42,6 +42,12 @@ The app remains sandboxed, using Sparkle’s installer and downloader XPC servic
 
 Before the first public release, test an older Sparkle-enabled build upgrading to a higher build number using a test feed, including relaunch and document preservation. The original build without Sparkle cannot update itself. A public update check will fail until the first GitHub release and its appcast are published. The script never publishes or pushes anything itself.
 
+## Release privacy
+
+The release compiler flags remap workspace and home-directory paths to neutral paths. Before notarization, `scripts/check_release_privacy.py` scans every regular file in the exported app and rejects `/Users/<name>/` or `/home/<name>/` paths. This includes embedded frameworks and resources; a dependency that introduces such paths will stop the release for review. Archives, dSYMs, and diagnostic logs remain local and can still contain personal paths. Publish only the ZIP, checksum, and appcast.
+
+Private signing exports and generated `SF-Cymbal-<version>-<build>.*` output directories are ignored, including when `RELEASE_ROOT` is changed. Intentional public PEM files can use the `.pub.pem` suffix. Ignore rules are preventive and do not replace reviewing staged files for secrets.
+
 ## Validate script changes
 
 Run `bash -n scripts/release.sh` and `python3 -m unittest discover -s scripts/tests -v` on macOS. The tests use temporary projects and mock signing/build services to check successful packaging and failure gates without uploading software. A real Developer ID release is still needed to verify signing and notarization end to end.

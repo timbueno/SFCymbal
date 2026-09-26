@@ -76,6 +76,9 @@ xcodebuild -project 'SF Cymbal.xcodeproj' -scheme 'SF Cymbal' \
   CODE_SIGN_STYLE=Manual "CODE_SIGN_IDENTITY=$SIGNING_IDENTITY" \
   "DEVELOPMENT_TEAM=$team" ENABLE_HARDENED_RUNTIME=YES \
   'OTHER_CODE_SIGN_FLAGS=--timestamp' \
+  "OTHER_SWIFT_FLAGS=\$(inherited) -file-prefix-map \"$PWD=/src/SFCymbal\" -file-prefix-map \"$HOME=/build/user\"" \
+  "OTHER_CFLAGS=\$(inherited) -ffile-prefix-map=\"$PWD=/src/SFCymbal\" -ffile-prefix-map=\"$HOME=/build/user\"" \
+  "OTHER_CPLUSPLUSFLAGS=\$(inherited) -ffile-prefix-map=\"$PWD=/src/SFCymbal\" -ffile-prefix-map=\"$HOME=/build/user\"" \
   'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO archive 2>&1 | tee "$output/archive.log"
 
 mkdir "$output/staging"
@@ -89,6 +92,7 @@ export_options="$output/ExportOptions.plist"
 xcodebuild -exportArchive -archivePath "$archive" -exportPath "$output/export" \
   -exportOptionsPlist "$export_options" 2>&1 | tee "$output/export.log"
 ditto "$output/export/SF Cymbal.app" "$app"
+python3 scripts/check_release_privacy.py "$app"
 plist="$app/Contents/Info.plist"
 [[ $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist") == "$version" ]]
 [[ $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist") == "$build" ]]

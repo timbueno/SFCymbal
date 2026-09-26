@@ -22,3 +22,18 @@ __pycache__/
 *.mobileprovision
 *.provisionprofile
 Configuration/Local.xcconfig
+
+# Private signing exports (public keys use an explicit .pub.pem suffix)
+*.pfx
+*.key
+*.pem
+!*.pub.pem
+sparkle-private-key*
+
+# Local release artifacts, including RELEASE_ROOT outside build/
+SF-Cymbal-[0-9]*/
+SF-Cymbal-*.zip
+SF-Cymbal-*.zip.sha256
+notarization*.zip
+*-release.log
+*-tests.log

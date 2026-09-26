@@ -44,7 +44,7 @@ elif name == 'xcodebuild':
         (tools / tool).symlink_to(pathlib.Path(sys.argv[0]).resolve())
     app = pathlib.Path(args[args.index('-archivePath') + 1]) / 'Products/Applications/SF Cymbal.app/Contents'
     (app / 'MacOS').mkdir(parents=True)
-    (app / 'MacOS/SF Cymbal').write_text('fixture')
+    (app / 'MacOS/SF Cymbal').write_text('/Users/private-builder/source.swift' if mode == 'privacy' else 'fixture')
     with (app / 'Info.plist').open('wb') as f:
         plistlib.dump({'CFBundleShortVersionString': '2026.1', 'CFBundleVersion': '1',
                       'CFBundleIdentifier': 'io.deadpan.SFCymbal', 'SUPublicEDKey': 'fixture-public-key'}, f)
@@ -85,6 +85,7 @@ class ReleaseTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         (self.root / 'scripts').mkdir()
         shutil.copy2(ROOT / 'scripts/release.sh', self.root / 'scripts/release.sh')
+        shutil.copy2(ROOT / 'scripts/check_release_privacy.py', self.root / 'scripts/check_release_privacy.py')
         project = self.root / 'SF Cymbal.xcodeproj'
         project.mkdir()
         with (project / 'project.pbxproj').open('wb') as f:
@@ -130,7 +131,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertFalse(self.artifacts())
 
     def test_failures_never_produce_download(self):
-        for failure in ['dirty', 'build', 'export', 'key', 'architecture', 'sandbox', 'debugger', 'notary', 'staple', 'gatekeeper']:
+        for failure in ['dirty', 'build', 'privacy', 'export', 'key', 'architecture', 'sandbox', 'debugger', 'notary', 'staple', 'gatekeeper']:
             with self.subTest(failure=failure):
                 result = self.run_release(failure=failure)
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
