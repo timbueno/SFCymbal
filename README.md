@@ -4,7 +4,7 @@ A small native macOS app for turning SVG artwork into custom SF Symbols. Uses Po
 
 ## Status
 
-SF Cymbal is in early development. This repository currently provides source code; a signed, notarized download has not been published yet.
+SF Cymbal is in early development. [Download SF Cymbal 2026.1](https://github.com/timbueno/SFCymbal/releases/tag/v2026.1), a signed and notarized universal app for macOS 14 or later. See the release notes for known limitations.
 
 ## Release versioning
 
@@ -47,7 +47,7 @@ Undo menu entries describe alignment, stroke scale, reference, zoom, and other c
 
 Release builds include **SF Cymbal → Check for Updates…**, powered by Sparkle 2.10.0. Sparkle asks whether to check automatically and respects that choice. Updates use signed archives from GitHub Releases. Debug builds leave the updater disabled so development and tests do not check for public updates.
 
-The update feed becomes available when the first public GitHub release includes `appcast.xml`.
+The update feed is hosted in the latest stable GitHub release as `appcast.xml`.
 
 ## Saving projects
 
