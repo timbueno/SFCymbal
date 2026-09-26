@@ -1,0 +1,23 @@
+# macOS and Xcode personal state
+.DS_Store
+xcuserdata/
+*.xcuserstate
+
+# Build products
+.build/
+DerivedData/
+build/
+*.xcarchive
+*.xcresult
+*.app
+*.dmg
+
+# Local signing and credentials
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.mobileprovision
+*.provisionprofile
+Configuration/Local.xcconfig
