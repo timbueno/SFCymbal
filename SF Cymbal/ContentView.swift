@@ -45,7 +45,7 @@ struct ContentView: View {
             store.send(.importCompleted($0))
         }
         .fileExporter(isPresented: $store.isExporting, document: store.output.map { SymbolDocument(data: $0.data) }, contentType: .svg,
-                      defaultFilename: "\(store.fileName).svg") {
+                      defaultFilename: "\(documentTitle ?? store.fileName).svg") {
             store.send(.exportCompleted($0))
         }
         .dropDestination(for: URL.self) { urls, _ in
