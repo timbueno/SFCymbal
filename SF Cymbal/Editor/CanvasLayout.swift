@@ -24,6 +24,28 @@ struct CanvasLayout {
                             height: (sourceSize.height - top - bottom) * sourceScale)
     }
 
+    /// Fit the same reference frame used for display, including overshoot and bearings.
+    static func fit(canvasSize: CGSize, sourceSize: CGSize, settings: SymbolSettings,
+                    referenceFrame: (CanvasLayout) -> CGRect) -> (zoom: Double, offset: CGSize) {
+        func contentBounds(zoom: Double) -> CGRect {
+            let layout = CanvasLayout(canvasSize: canvasSize, sourceSize: sourceSize,
+                                      settings: settings, zoom: zoom)
+            return layout.artworkFrame.union(layout.guideFrame).union(referenceFrame(layout))
+        }
+        var lower = 0.0001
+        var upper = 10.0
+        for _ in 0..<40 {
+            let candidate = (lower + upper) / 2
+            let bounds = contentBounds(zoom: candidate)
+            if bounds.width <= canvasSize.width - 80 && bounds.height <= canvasSize.height - 80 {
+                lower = candidate
+            } else { upper = candidate }
+        }
+        let bounds = contentBounds(zoom: lower)
+        return (lower, CGSize(width: canvasSize.width / 2 - bounds.midX,
+                              height: canvasSize.height / 2 - bounds.midY))
+    }
+
     func referenceFrame(aspectRatio: Double) -> CGRect {
         let height = guideFrame.height
         let width = height * aspectRatio

@@ -5,9 +5,10 @@ struct ReferenceSymbolView: View {
     let layout: CanvasLayout
     let name: String
     let weight: String
+    let size: SymbolSettings.SymbolSize
 
     var body: some View {
-        if let image = ReferenceSymbolImages.shared.image(name: name, weight: weight) {
+        if let image = ReferenceSymbolImages.shared.image(name: name, weight: weight, size: size) {
             let reference = layout.referenceSymbolFrame(imageSize: image.size, alignmentRect: image.alignmentRect)
             Image(nsImage: image)
                 .resizable()

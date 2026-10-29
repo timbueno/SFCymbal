@@ -59,10 +59,10 @@ struct ReferenceTests {
     @Test(arguments: ["star", "heart.fill", "arrow.left.and.right", "person.fill"], ["Ultralight", "Regular", "Black"])
     func systemSymbolsHaveUsableDimensions(name: String, weight: String) throws {
         #expect(ReferenceSymbolClient.liveValue.exists(name))
-        let image = try #require(ReferenceSymbolImages.shared.image(name: name, weight: weight))
+        let image = try #require(ReferenceSymbolImages.shared.image(name: name, weight: weight, size: .small))
         #expect(image.size.width > 0)
         #expect(image.size.height > 0)
-        let again = try #require(ReferenceSymbolImages.shared.image(name: name, weight: weight))
+        let again = try #require(ReferenceSymbolImages.shared.image(name: name, weight: weight, size: .small))
         #expect(image === again)
         let layout = CanvasLayout(canvasSize: CGSize(width: 900, height: 600), sourceSize: CGSize(width: 100, height: 100), settings: SymbolSettings(), zoom: 1)
         let reference = layout.referenceFrame(aspectRatio: image.size.width / image.size.height)
@@ -70,8 +70,71 @@ struct ReferenceTests {
         expectNoDifference(reference.maxY, layout.guideFrame.maxY)
     }
 
+    @Test(arguments: ["Ultralight", "Regular", "Black"])
+    func configuredScalesMatchAppKitAndRemainDistinctInCache(weight: String) throws {
+        let fontWeight: NSFont.Weight = switch weight {
+        case "Ultralight": .ultraLight
+        case "Black": .black
+        default: .regular
+        }
+        let base = try #require(NSImage(systemSymbolName: "bookmark", accessibilityDescription: nil))
+        let cases: [(SymbolSettings.SymbolSize, NSImage.SymbolScale)] = [
+            (.small, .small), (.medium, .medium), (.large, .large)
+        ]
+        var images: [NSImage] = []
+        for (size, scale) in cases {
+            let expected = try #require(base.withSymbolConfiguration(.init(pointSize: 100, weight: fontWeight, scale: scale)))
+            let actual = try #require(ReferenceSymbolImages.shared.image(name: "bookmark", weight: weight, size: size))
+            #expect(actual.size == expected.size)
+            #expect(actual.alignmentRect == expected.alignmentRect)
+            #expect(images.allSatisfy { $0 !== actual })
+            images.append(actual)
+        }
+        // A request after all three cache entries exist must still return its own scale.
+        for ((size, _), image) in zip(cases.reversed(), images.reversed()) {
+            #expect(ReferenceSymbolImages.shared.image(name: "bookmark", weight: weight, size: size) === image)
+        }
+        let heights = images.map { $0.size.height / $0.alignmentRect.height }
+        #expect(heights[0] < heights[1])
+        #expect(heights[1] < heights[2])
+    }
+
+    @Test(arguments: SymbolSettings.SymbolSize.allCases, ["bookmark", "star", "person.fill"])
+    func realSymbolAlignmentAndFitPreserveMetrics(size: SymbolSettings.SymbolSize, name: String) throws {
+        let image = try #require(ReferenceSymbolImages.shared.image(name: name, weight: "Regular", size: size))
+        var settings = SymbolSettings()
+        settings.size = size
+        let canvas = CGSize(width: 900, height: 600)
+        let source = CGSize(width: 100, height: 100)
+        let fit = CanvasLayout.fit(canvasSize: canvas, sourceSize: source, settings: settings) {
+            $0.referenceSymbolFrame(imageSize: image.size, alignmentRect: image.alignmentRect)
+        }
+        let layout = CanvasLayout(canvasSize: canvas, sourceSize: source, settings: settings,
+                                  zoom: fit.zoom, offset: fit.offset)
+        let frame = layout.referenceSymbolFrame(imageSize: image.size, alignmentRect: image.alignmentRect)
+        let scale = frame.height / image.size.height
+        let alignment = image.alignmentRect
+        #expect(abs(frame.maxY - alignment.minY * scale - layout.guideFrame.maxY) < 0.0001)
+        #expect(abs(frame.maxY - alignment.maxY * scale - layout.guideFrame.minY) < 0.0001)
+        #expect(abs(frame.minX + alignment.maxX * scale - layout.referenceFrame(aspectRatio: 1).maxX) < 0.0001)
+        #expect(abs(frame.width / frame.height - image.size.width / image.size.height) < 0.0001)
+        if name == "bookmark" {
+            #expect(frame.minY < layout.guideFrame.minY)
+            #expect(frame.maxY > layout.guideFrame.maxY)
+        }
+        let bounds = layout.artworkFrame.union(layout.guideFrame).union(frame)
+        #expect(bounds.minX >= 40 - 0.0001)
+        #expect(bounds.minY >= 40 - 0.0001)
+        #expect(bounds.maxX <= canvas.width - 40 + 0.0001)
+        #expect(bounds.maxY <= canvas.height - 40 + 0.0001)
+        #expect(abs(bounds.midX - canvas.width / 2) < 0.0001)
+        #expect(abs(bounds.midY - canvas.height / 2) < 0.0001)
+        #expect(abs(bounds.width - (canvas.width - 80)) < 0.001 ||
+                abs(bounds.height - (canvas.height - 80)) < 0.001)
+    }
+
     @Test func unknownSystemSymbolIsRejected() {
         #expect(!ReferenceSymbolClient.liveValue.exists("sfcymbal.nonexistent.symbol.12345"))
-        #expect(ReferenceSymbolImages.shared.image(name: "sfcymbal.nonexistent.symbol.12345", weight: "Regular") == nil)
+        #expect(ReferenceSymbolImages.shared.image(name: "sfcymbal.nonexistent.symbol.12345", weight: "Regular", size: .small) == nil)
     }
 }

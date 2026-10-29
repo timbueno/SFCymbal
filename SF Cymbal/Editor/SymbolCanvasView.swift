@@ -34,7 +34,7 @@ struct SymbolCanvasView: View {
                     if store.reference.kind == .letter {
                         ReferenceLetterView(layout: layout, weight: store.weight)
                     } else {
-                        ReferenceSymbolView(layout: layout, name: store.reference.symbolName, weight: store.weight)
+                        ReferenceSymbolView(layout: layout, name: store.reference.symbolName, weight: store.weight, size: store.settings.size)
                     }
                     ArtworkEdgeGuidesView(
                         bounds: artwork.opticalBounds.applying(CGAffineTransform(
@@ -85,6 +85,9 @@ struct SymbolCanvasView: View {
             .onChange(of: store.fitRequest) { old, new in
                 if new > old { fitCanvas(size: geometry.size) }
             }
+            .onChange(of: store.settings.size) { _, _ in
+                if store.isFitZoom && store.canvasOffset == .zero { fitCanvas(size: geometry.size) }
+            }
             .onChange(of: geometry.size) { _, size in
                 if store.isFitZoom && store.canvasOffset == .zero { fitCanvas(size: size) }
             }
@@ -94,31 +97,16 @@ struct SymbolCanvasView: View {
     }
     private func fitCanvas(size: CGSize) {
         guard let artwork = store.artwork, size.width > 80, size.height > 80 else { return }
-        func contentBounds(zoom: Double) -> CGRect {
-            let layout = CanvasLayout(canvasSize: size, sourceSize: artwork.size,
-                                      settings: store.effectiveSettings, zoom: zoom)
-            let reference: CGRect
+        let fit = CanvasLayout.fit(canvasSize: size, sourceSize: artwork.size,
+                                   settings: store.effectiveSettings) { layout in
             if store.reference.kind == .symbol,
-               let image = ReferenceSymbolImages.shared.image(name: store.reference.symbolName, weight: store.weight) {
-                reference = layout.referenceSymbolFrame(imageSize: image.size, alignmentRect: image.alignmentRect)
+               let image = ReferenceSymbolImages.shared.image(name: store.reference.symbolName, weight: store.weight, size: store.settings.size) {
+                layout.referenceSymbolFrame(imageSize: image.size, alignmentRect: image.alignmentRect)
             } else {
-                reference = layout.referenceFrame(aspectRatio: ReferenceLetterView.aspectRatio(weight: store.weight))
+                layout.referenceFrame(aspectRatio: ReferenceLetterView.aspectRatio(weight: store.weight))
             }
-            return layout.artworkFrame.union(layout.guideFrame).union(reference)
         }
-        // Find the largest scale that fits both artwork and reference with breathing room.
-        var lower = 0.0001
-        var upper = 10.0
-        for _ in 0..<40 {
-            let candidate = (lower + upper) / 2
-            let bounds = contentBounds(zoom: candidate)
-            if bounds.width <= size.width - 80 && bounds.height <= size.height - 80 {
-                lower = candidate
-            } else { upper = candidate }
-        }
-        let bounds = contentBounds(zoom: lower)
-        store.send(.canvasFitted(lower, CGSize(width: size.width / 2 - bounds.midX,
-                                              height: size.height / 2 - bounds.midY)))
+        store.send(.canvasFitted(fit.zoom, fit.offset))
     }
 
 }
